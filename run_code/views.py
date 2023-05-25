@@ -28,3 +28,12 @@ class RunPythonView(APIView):
                 'data': str(result)
             }
         return JsonResponse(res_data, status=status.HTTP_200_OK)
+
+    def get(self, request):
+        sample_file_content = open("run_code/sample_code/sample.py", "r")
+        res_data = {
+            'error': 0,
+            'msg': 'success',
+            'data': sample_file_content.read()
+        }
+        return JsonResponse(res_data, status=status.HTTP_200_OK)

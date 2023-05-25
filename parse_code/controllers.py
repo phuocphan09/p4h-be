@@ -36,7 +36,7 @@ class Node:
         # use this function to support JSON lib serialization
         # return self.__dict__
         return {"line": self.line, "last_line": self.last_line, "level": self.level, "isActive": self.isActive,
-                    "label": self.label, "childNodes": self.childNodes}
+                "label": self.label, "childNodes": self.childNodes}
 
     # for printing
     def __repr__(self):
@@ -116,7 +116,7 @@ def get_last_line(processed_nodes):
         first_word = node.label.split(' ')[0]
 
         # if
-        if first_word == 'if':
+        if first_word in ['if', 'elif']:
             # if only
             node.last_line = get_child_last_line(node)
             # if with elif or else
@@ -156,24 +156,53 @@ def remove_unwanted(node):
     node.childNodes = new_childNodes
 
 
-def run(inputObj):
+def remove_nested_levels(nested_nodes, output):
+    for node in nested_nodes:
+        output.append(node)
+        remove_nested_levels(node.childNodes, output)
+
+
+def retrieve_active_index(removed_nested_list):
+    for i in range(0, len(removed_nested_list)):
+        if removed_nested_list[i].isActive:
+            return i
+    return None
+
+
+def do_full_parse(input_lines, isActive, returnNodeObj=False):
     try:
 
         # parse
-        processed_nodes = parse_code(inputObj["input_lines"], isActive=inputObj["isActive"])
+        processed_nodes = parse_code(input_lines, isActive=isActive)
 
         if processed_nodes == None:
-            return {"error_code": 1, "data": []}
+            json.loads(json.dumps({"error_code": 1, "data": ""}))
 
         # formatting
         get_last_line(processed_nodes)
         remove_unwanted(processed_nodes[0])
 
-        # return json.dumps({"error_code": 0, "data": processed_nodes[0].childNodes})
-        return json.loads(
-            json.dumps({"error_code": 0, "data": processed_nodes[0].childNodes}, default=lambda o: o.encode(),
-                       indent=4))
+        # remove nested levels to produce a linear output (all lines on the same level)
+        completed = []
+        remove_nested_levels(processed_nodes[0].childNodes, completed)
+
+        # active index in the final list, not active line in the sent code
+        active_index = retrieve_active_index(completed)
+
+        # return in the right format:
+        if (returnNodeObj):
+            return completed
+        else:
+            return json.loads(
+                json.dumps({"error_code": 0, "data": {"active_index": active_index, "parsed_line": completed}}, default=lambda o: o.encode(),
+                           indent=4))
 
     except Exception as e:
+        return json.loads(json.dumps({"error_code": 1, "data": ""}))
 
-        return json.loads(json.dumps({"error_code": 0, "data": ""}))
+
+def parse_code_and_return_api(inputObj):
+    input_lines = inputObj["input_lines"]
+    isActive = inputObj["isActive"]
+
+    return do_full_parse(input_lines, isActive, returnNodeObj=False)

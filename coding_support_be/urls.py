@@ -22,6 +22,7 @@ from explain_code import views as explain_code_view
 from action_log import views as action_log_view
 from parse_code import views as parse_code_view
 from compile_code import views as compile_code_view
+from describe_line import views as describe_line_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,5 +30,6 @@ urlpatterns = [
     path('api/explain-code/', explain_code_view.ExplainCodeView.as_view()),
     path('api/action-log/', action_log_view.ActionLogView.as_view()),
     path('api/parse-code/', parse_code_view.ParseCodeView.as_view()),
-    path('api/compile-code/', compile_code_view.CompileCodeView.as_view())
+    path('api/compile-code/', compile_code_view.CompileCodeView.as_view()),
+    path('api/describe-line/', describe_line_view.DescribeLineView.as_view())
 ]
